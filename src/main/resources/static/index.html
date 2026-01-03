@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Invocadores | LoL Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Beaufort+LoL&family=Spiegel&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="hextech-header">
+    <h1>Buscador de Invocadores</h1>
+    <p class="subtitle">Analiza tu rendimiento en la Grieta</p>
+</header>
+
+<main class="main-container">
+    <div class="search-box">
+        <input type="text" id="summonerName" placeholder="Nombre de Invocador + #TAG (Ej: Faker#KR1)" autocomplete="off">
+        <button onclick="buscarInvocador()" class="hextech-btn">BUSCAR</button>
+    </div>
+
+    <div id="result-container" class="results-hidden">
+        <div class="profile-card">
+            <h2 id="profile-name">Esperando búsqueda...</h2>
+            <p id="profile-level">Nivel: --</p>
+            <div class="rank-badge">
+                <span id="profile-rank">Unranked</span>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="pixel-avatar-container" title="¡Invítame un café!">
+    <img src="avatar.png" alt="Dev Avatar" class="pixel-avatar">
+    <div class="speech-bubble">¿Te sirvió? ¡Apóyame!</div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

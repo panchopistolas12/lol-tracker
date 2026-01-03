@@ -1,0 +1,241 @@
+/* === CONFIGURACIÓN GENERAL (Modo Oscuro) === */
+body {
+    background-color: #010a13; /* El negro azulado de LoL */
+    color: #f0e6d2; /* El dorado pálido de las letras */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fuente limpia */
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* === ENCABEZADO HEXTECH === */
+.hextech-header {
+    margin-top: 50px;
+    border-bottom: 2px solid #c8aa6e; /* Borde dorado */
+    padding-bottom: 20px;
+    width: 80%;
+}
+
+h1 {
+    font-size: 3rem;
+    color: #c8aa6e; /* Dorado LoL */
+    text-shadow: 0 0 10px rgba(200, 170, 110, 0.5); /* Brillo mágico */
+    margin: 0;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    color: #a09b8c; /* Gris metálico */
+    font-size: 1.2rem;
+}
+
+/* === CAJA DE BÚSQUEDA === */
+.main-container {
+    margin-top: 40px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.search-box {
+    background: rgba(1, 10, 19, 0.9);
+    padding: 20px;
+    border: 1px solid #c8aa6e;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    background: #091428; /* Azul oscuro */
+    border: 1px solid #5c5b57;
+    color: white;
+    padding: 15px;
+    font-size: 1.2rem;
+    width: 300px;
+    outline: none;
+}
+
+input:focus {
+    border-color: #c8aa6e; /* Se ilumina dorado al escribir */
+}
+
+/* === BOTÓN MÁGICO === */
+.hextech-btn {
+    background: linear-gradient(180deg, #1e2328 0%, #1e282d 100%);
+    border: 2px solid #c8aa6e;
+    color: #cdbe91;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.hextech-btn:hover {
+    background: #c8aa6e; /* Se vuelve dorado al pasar el mouse */
+    color: #010a13;
+    box-shadow: 0 0 15px #c8aa6e; /* Resplandor */
+}
+
+/* === RESULTADOS (Ocultos al inicio) === */
+.results-hidden {
+    margin-top: 30px;
+    opacity: 0; /* Invisible por ahora */
+    transition: opacity 0.5s;
+}
+
+.profile-card {
+    background: #091428;
+    border: 2px solid #0acbe6; /* Azul Hextech */
+    padding: 20px;
+    width: 300px;
+    box-shadow: 0 0 20px rgba(10, 203, 230, 0.3);
+}
+
+/* === TU AVATAR FLOTANTE (DONACIONES) === */
+.pixel-avatar-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    cursor: pointer;
+    z-index: 1000;
+    text-align: center;
+}
+
+/* Animación de flotar arriba/abajo */
+.pixel-avatar {
+    width: 64px;
+    image-rendering: pixelated; /* Mantiene los pixeles nítidos */
+    animation: flotar 3s ease-in-out infinite;
+    transition: transform 0.2s;
+}
+
+.pixel-avatar:hover {
+    transform: scale(1.2); /* Crece un poco al pasar el mouse */
+}
+
+.speech-bubble {
+    background: white;
+    color: black;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none; /* Para que no moleste el clic */
+}
+
+.pixel-avatar-container:hover .speech-bubble {
+    opacity: 1; /* Muestra el texto cuando pasas el mouse */
+}
+
+@keyframes flotar {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+/* Agrega esto al final de tu styles.css */
+
+/* En tu styles.css */
+
+/* Reemplaza tu bloque .rank-image actual */
+.rank-image {
+    /* TAMAÑO COLOSAL RESPONSIVO */
+    width: 90%;           /* Ocupa casi todo el ancho disponible */
+    max-width: 550px;     /* Pero que no pase de 550px (para que no sea ridículo en monitores 4K) */
+    height: auto;         /* Mantiene la proporción */
+
+    /* Aseguramos centrado por si acaso */
+    display: block;
+    margin: 0 auto 20px auto;
+
+    /* Estética */
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.9)); /* Sombra aún más dramática para el tamaño */
+    animation: flotar 5s ease-in-out infinite; /* Animación más lenta y majestuosa */
+}
+
+/* (El @keyframes flotar déjalo igual) */
+
+/* (El @keyframes flotar déjalo igual) */
+
+/* Animación para que el emblema suba y baje suavemente */
+@keyframes flotar {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0px); }
+}
+/* Agrega o modifica esto en styles.css */
+.rank-badge {
+    text-align: center; /* Centra el texto */
+    display: flex;      /* Activa el modo flexible */
+    flex-direction: column; /* Ordena los elementos uno debajo del otro */
+    align-items: center; /* ¡ESTO ES CLAVE! Fuerza el centrado horizontal perfecto */
+    margin-top: 30px;    /* Un poco más de espacio arriba */
+}
+/* --- AGREGA ESTO AL FINAL DE styles.css --- */
+
+/* Contenedor: Alinea los 3 círculos en fila horizontal */
+.mastery-container {
+    display: flex;
+    justify-content: center; /* Centrados al medio */
+    gap: 25px;              /* Espacio entre ellos */
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Línea divisoria sutil */
+}
+
+/* Cada ítem de campeón */
+.champion-circle {
+    position: relative;
+    width: 70px;            /* Tamaño fijo */
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s ease; /* Animación suave al pasar el mouse */
+}
+
+/* Efecto Zoom al pasar el mouse */
+.champion-circle:hover {
+    transform: translateY(-5px) scale(1.1);
+}
+
+/* La imagen del campeón (Círculo Perfecto) */
+.champion-circle img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;     /* <--- ¡ESTO LO HACE REDONDO! */
+    border: 3px solid #9fb6d6; /* Borde estilo Hextech */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    object-fit: cover;
+}
+
+/* La bolita con el nivel (ej: 49) */
+.mastery-level {
+    position: absolute;
+    bottom: 25px;           /* Ajustado para que quede en la esquina */
+    right: -5px;
+    background: #111;
+    color: #e2b714;         /* Dorado */
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 10px;
+    border: 1px solid #e2b714;
+    z-index: 10;
+}
+
+/* Los puntos (ej: 509k) */
+.mastery-points {
+    color: #a09b8c;
+    font-size: 0.85rem;
+    margin-top: 8px;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
