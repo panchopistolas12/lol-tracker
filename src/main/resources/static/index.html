@@ -3,39 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buscador de Invocadores | LoL Tracker</title>
+    <meta name="description" content="Hextech Scout: El mejor tracker de LoL para LAS/LAN.">
+    <meta name="author" content="Christian Godoi">
+    <meta name="theme-color" content="#091428">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@400;500;700&family=Beaufort+for+LOL:wght@700&display=swap" rel="stylesheet">
+
+    <title>Hextech Scout | Professional LCK Tracker</title>
+
+    <link rel="icon" type="image/png" href="favicon.png?v=1.1">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Beaufort+LoL&family=Spiegel&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<header class="hextech-header">
-    <h1>Buscador de Invocadores</h1>
-    <p class="subtitle">Analiza tu rendimiento en la Grieta</p>
-</header>
+<nav class="navbar">
+    <div class="nav-container">
+        <a href="/" class="logo">
+            <i class="fa-solid fa-dragon"></i> <span>HEXTECH SCOUT</span>
+        </a>
 
-<main class="main-container">
-    <div class="search-box">
-        <input type="text" id="summonerName" placeholder="Nombre de Invocador + #TAG (Ej: Faker#KR1)" autocomplete="off">
-        <button onclick="buscarInvocador()" class="hextech-btn">BUSCAR</button>
+        <ul class="nav-menu">
+            <li><a href="#" class="nav-link active">Inicio</a></li>
+        </ul>
+        <div class="nav-actions"></div>
     </div>
+</nav>
 
-    <div id="result-container" class="results-hidden">
-        <div class="profile-card">
-            <h2 id="profile-name">Esperando búsqueda...</h2>
-            <p id="profile-level">Nivel: --</p>
-            <div class="rank-badge">
-                <span id="profile-rank">Unranked</span>
-            </div>
+<header class="hero-section">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+        <h1 class="hero-title">Domina la Grieta del Invocador</h1>
+        <p class="hero-subtitle">Análisis de League of legends pasa subir el nivel</p>
+
+        <div class="search-container-large">
+            <div class="region-tag">LAS</div>
+            <input type="text" id="summonerName" placeholder="Invocador + #TAG (Ej: dragonite03#las)" autocomplete="off">
+            <button onclick="buscarInvocador()" class="btn-search-large">
+                <i class="fa-solid fa-magnifying-glass"></i> BUSCAR
+            </button>
         </div>
     </div>
-</main>
+</header>
 
-<div class="pixel-avatar-container" title="¡Invítame un café!">
-    <img src="avatar.png" alt="Dev Avatar" class="pixel-avatar">
-    <div class="speech-bubble">¿Te sirvió? ¡Apóyame!</div>
+<main id="result-container" class="results-hidden lck-container"></main>
+
+<footer class="site-footer">
+    <div class="footer-content container">
+        <div class="footer-top">
+            <div class="footer-brand">HEXTECH SCOUT</div>
+            <button id="openFeedback" class="btn-sugerencias">
+                <i class="fa-solid fa-lightbulb"></i> ¿TIENES UNA IDEA?
+            </button>
+            <div class="social-links">
+                <a href="https://www.instagram.com/chita.manchitas/" target="_blank" title="Sígueme en Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+            </div>
+        </div>
+        <div class="footer-divider"></div>
+        <p class="legal-text">
+            Hextech Scout no está respaldado por Riot Games. Riot Games y propiedades asociadas son marcas de Riot Games, Inc.
+        </p>
+        <p class="copyright">
+            &copy; 04/01/2026 chita manchitas // Proyecto Hextech Scout
+        </p>
+    </div>
+</footer>
+
+<div id="authModal" class="auth-modal">
+    <div class="auth-content">
+        <span class="close-modal-btn">&times;</span>
+        <h2>SISTEMA DE MEJORAS</h2>
+        <form id="feedbackForm" action="https://formspree.io/f/mdakypyd" method="POST">
+            <input type="text" name="nombre" id="fbName" placeholder="Tu Nombre o Invocador" autocomplete="off" required>
+            <input type="email" name="_replyto" id="fbEmail" placeholder="Tu Email para contacto" autocomplete="off" required>
+
+            <textarea name="mensaje" id="fbMessage" rows="5" placeholder="¿Qué cambios o ideas tienes?" class="no-resize" required></textarea>
+
+            <input type="hidden" name="_subject" value="Nueva Sugerencia en Hextech Scout">
+
+            <button type="submit" class="btn-submit-hextech">
+                <span>TRANSMITIR REPORTE</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="pixel-avatar-container" id="pixelCat">
+    <img src="avatar.png" class="pixel-avatar">
+    <div class="speech-bubble">¿Necesitas ayuda? ¡Haz clic!</div>
+
+    <div class="cat-help-menu" id="catMenu">
+        <h4>¿Cómo ayudar al Proyecto?</h4>
+        <ul class="help-list">
+            <li><a href="https://www.instagram.com/chita.manchitas/" target="_blank"><i class="fa-brands fa-instagram"></i> Sígueme para ver avances</a></li>
+            <li><a href="#" id="openFeedbackFromCat"><i class="fa-solid fa-bug"></i> Reporta un error</a></li>
+            <li><a href="#"><i class="fa-solid fa-share-nodes"></i> Comparte con tu Duo</a></li>
+            <li><a href="#"><i class="fa-solid fa-coffee"></i> Invítame un café (Próximamente)</a></li>
+        </ul>
+    </div>
 </div>
 
 <script src="script.js"></script>
+
 </body>
 </html>

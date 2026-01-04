@@ -1,122 +1,313 @@
-async function buscarInvocador() {
+// --- VARIABLES GLOBALES PARA PAGINACIÓN ---
+let currentMatchIndex = 0;
+let lastSearchData = { nombre: '', tag: '' };
+
+// --- 1. FUNCIÓN PRINCIPAL DE BÚSQUEDA ---
+async function buscarInvocador(isLoadMore = false) {
     const input = document.getElementById("summonerName").value;
-    const boton = document.querySelector("button");
+    const botonBusqueda = document.querySelector(".btn-search-large");
     const contenedorResultados = document.getElementById("result-container");
 
-    // 1. VALIDACIÓN Y LIMPIEZA
-    if (!input.includes("#")) {
-        alert("Por favor, incluye el TAG. Ejemplo: Dragonite#LAS");
-        return;
+    if (!isLoadMore) {
+        if (!input.includes("#")) return alert("Por favor, incluye el TAG. Ejemplo: Dragonite#LAS");
+        let [nombre, tag] = input.split("#");
+        lastSearchData = { nombre: nombre.trim(), tag: tag.trim() };
+        currentMatchIndex = 0;
+
+        botonBusqueda.disabled = true;
+        botonBusqueda.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+        contenedorResultados.classList.remove("results-hidden");
+        contenedorResultados.innerHTML = `<p style="color: #a09b8c; text-align: center; padding: 40px;">Consultando a Riot Games...</p>`;
+    } else {
+        const btnMore = document.getElementById("btnLoadMore");
+        btnMore.disabled = true;
+        btnMore.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Cargando...`;
     }
-
-    let [nombre, tag] = input.split("#");
-    nombre = nombre.trim();
-    tag = tag.trim();
-
-    // 2. MODO "CARGANDO"
-    boton.disabled = true;
-    boton.textContent = "Buscando...";
-
-    // Aseguramos que la caja sea visible para mostrar el mensaje de carga
-    contenedorResultados.classList.remove("results-hidden"); // <--- ¡ESTO FALTABA!
-    contenedorResultados.innerHTML = `<p style="color: #a09b8c; text-align: center;">Consultando a Riot Games...</p>`;
 
     try {
-        const response = await fetch(`/api/search?nombre=${encodeURIComponent(nombre)}&tag=${encodeURIComponent(tag)}`);
-
-        if (!response.ok) {
-            throw new Error("Jugador no encontrado o error en el servidor");
-        }
+        const url = `/api/search?nombre=${encodeURIComponent(lastSearchData.nombre)}&tag=${encodeURIComponent(lastSearchData.tag)}&start=${currentMatchIndex}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Error en la consulta");
 
         const datos = await response.json();
-        mostrarDatosReales(datos);
+        mostrarDatosReales(datos, isLoadMore);
+        currentMatchIndex += 5;
 
     } catch (error) {
-        contenedorResultados.innerHTML = `
-            <div style="color: #ff5859; padding: 20px; border: 1px solid #ff5859; border-radius: 10px; text-align: center;">
-                <h3>Error</h3>
-                <p>${error.message}</p>
-                <p style="font-size: 0.8rem; opacity: 0.7;">(Intenta revisar si el nombre y el #TAG son correctos)</p>
-            </div>
-        `;
+        if (!isLoadMore) {
+            contenedorResultados.innerHTML = `<div style="color: #ff5859; text-align: center; padding: 40px;"><h3>Error</h3><p>${error.message}</p></div>`;
+        } else {
+            alert("No hay más partidas.");
+        }
     } finally {
-        boton.disabled = false;
-        boton.textContent = "BUSCAR";
+        if (!isLoadMore) {
+            botonBusqueda.disabled = false;
+            botonBusqueda.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i> BUSCAR`;
+        }
     }
 }
 
-function mostrarDatosReales(datos) {
+// --- 2. RENDERIZADO DE RESULTADOS ---
+function mostrarDatosReales(datos, isLoadMore) {
     const contenedorResultados = document.getElementById("result-container");
 
-    // Aseguramos que la caja sea visible
-    contenedorResultados.classList.remove("results-hidden");
+    let matchCardsHTML = '';
+    if (datos.historial) {
+        datos.historial.forEach(m => {
+            const statusClass = m.win ? 'match-win' : 'match-loss';
+            const statusText = m.win ? 'VICTORY' : 'DEFEAT';
+            const kdaRatio = ((m.kills + m.assists) / (m.deaths || 1)).toFixed(2);
 
-    // --- LÓGICA DEL RANGO ---
-    let rangoTexto = datos.rango || "UNRANKED";
-    let tier = rangoTexto.split(" ")[0].toLowerCase();
-    const rangosValidos = ["iron", "bronze", "silver", "gold", "platinum", "emerald", "diamond", "master", "grandmaster", "challenger"];
+            let itemsHTML = '';
+            for (let i = 0; i <= 6; i++) {
+                const itemId = m[`item${i}`];
+                if (itemId && itemId !== 0) {
+                    itemsHTML += `<img src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/item/${itemId}.png" class="item-icon" title="Item ID: ${itemId}">`;
+                } else {
+                    itemsHTML += `<div class="item-empty"></div>`;
+                }
+            }
 
-    let imagenUrl = rangosValidos.includes(tier)
-        ? `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-${tier}.png`
-        : "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-unranked.png";
+            const team1Icons = m.team1.map(c => `<img src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/${c}.png" class="t-icon" title="${c}">`).join('');
+            const team2Icons = m.team2.map(c => `<img src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/${c}.png" class="t-icon" title="${c}">`).join('');
 
-    // --- LÓGICA DE MAESTRÍAS ---
-    let maestriasHTML = '';
-    if (datos.maestrias && datos.maestrias.length > 0) {
-        maestriasHTML = `<div class="mastery-container">`;
-        datos.maestrias.forEach(m => {
-            let imgChamp = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${m.championId}.png`;
-            maestriasHTML += `
-                <div class="champion-circle">
-                    <img src="${imgChamp}" alt="Champ">
-                    <div class="mastery-level">${m.championLevel}</div>
-                    <div class="mastery-points">${(m.championPoints / 1000).toFixed(0)}k</div>
-                </div>
-            `;
+            matchCardsHTML += `
+                <div class="lck-match-card ${statusClass}">
+                    <div class="m-status-bar"></div>
+                    <img src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/${m.championName}.png" class="m-champ">
+                    <div class="m-stats">
+                        <span class="m-result">${statusText}</span>
+                        <span class="m-kda-text"><b>${m.kills}</b> / <span class="d">${m.deaths}</span> / <b>${m.assists}</b></span>
+                        <span class="m-ratio">${kdaRatio} KDA</span>
+                    </div>
+                    <div class="m-items-grid">${itemsHTML}</div>
+                    <div class="m-teams-grid">
+                        <div class="t-column">${team1Icons}</div>
+                        <div class="t-column">${team2Icons}</div>
+                    </div>
+                </div>`;
         });
-        maestriasHTML += `</div>`;
     }
 
-    // --- HTML FINAL ---
-    const tarjetaHTML = `
-        <div class="profile-card">
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <div style="position: relative;">
-                    <img src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${datos.iconoId}.png"
-                         style="width: 85px; border-radius: 50%; border: 3px solid #c8aa6e; box-shadow: 0 0 15px rgba(200, 170, 110, 0.3);">
-                    <span style="position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; border: 1px solid #c8aa6e;">
-                        ${datos.nivel}
-                    </span>
-                </div>
+    if (!isLoadMore) {
+        let vics = datos.historial.filter(m => m.win).length;
+        let totalK = datos.historial.reduce((s, m) => s + m.kills, 0);
+        let totalD = datos.historial.reduce((s, m) => s + m.deaths, 0);
+        let totalA = datos.historial.reduce((s, m) => s + m.assists, 0);
+        let avgKDA = ((totalK + totalA) / (totalD || 1)).toFixed(2);
 
-                <div style="text-align: left;">
-                    <h2 style="margin: 0; color: #f0e6d2; font-size: 1.8rem;">${datos.nombre}</h2>
-                    <p style="margin: 0; color: #a09b8c; letter-spacing: 1px;">#${datos.tag}</p>
+        let rangoTexto = datos.rango || "UNRANKED";
+        let tier = rangoTexto.split(" ")[0].toLowerCase();
+        let rankImageHTML = '';
+        const rangosValidos = ["iron", "bronze", "silver", "gold", "platinum", "emerald", "diamond", "master", "grandmaster", "challenger"];
+        if (rangosValidos.includes(tier)) {
+            let url = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-${tier}.png`;
+            rankImageHTML = `<img src="${url}" class="rank-mini">`;
+        }
+
+        let maestriasHTML = datos.maestrias.map(m => `
+            <img src="https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${m.championId}.png" class="p-m-icon" title="${(m.championPoints / 1000).toFixed(0)}k pts">
+        `).join('');
+
+        contenedorResultados.innerHTML = `
+            <div class="lck-header-card">
+                <div class="p-identity">
+                    <div class="pfp-wrapper">
+                        <img src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${datos.iconoId}.png" class="p-pfp">
+                        <span class="p-lvl-tag">${datos.nivel}</span>
+                    </div>
+                    <div class="p-info">
+                        <h2 class="p-name">${datos.nombre} <span class="p-tag">#${datos.tag}</span></h2>
+                        <div class="p-rank-row">
+                             ${rankImageHTML}
+                             <span>${diosRango(rangoTexto)} • <b>${datos.lp} LP</b> • WR ${datos.winrate}%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-masteries">
+                    ${maestriasHTML}
                 </div>
             </div>
 
-            <hr style="border-color: #5c5b57; margin: 20px 0; opacity: 0.5;">
-
-            <div class="rank-badge">
-                <img src="${imagenUrl}" alt="${datos.rango}" class="rank-image">
-                <h3 style="color: #f0e6d2; margin: 10px 0 5px 0; font-size: 1.5rem; text-transform: uppercase;">${datos.rango}</h3>
-                <div style="display: flex; justify-content: center; gap: 20px; color: #a09b8c;">
-                    <span><b>${datos.lp}</b> LP</span>
-                    <span style="color: ${datos.winrate >= 50 ? '#2deb90' : '#ff5859'};">WR: ${datos.winrate}%</span>
+            <div class="lck-body">
+                <div class="res-summary-panel">
+                    <div class="summary-item">
+                        <span class="label">Resumen Últimas 5</span>
+                        <span class="value">${vics}V - ${5 - vics}D</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">KDA Sesión</span>
+                        <span class="value" style="color: var(--hextech-blue)">${avgKDA}</span>
+                    </div>
                 </div>
-            </div>
 
-            ${maestriasHTML}
-
-        </div>
-    `;
-
-    contenedorResultados.innerHTML = tarjetaHTML;
+                <h4 class="section-title">Historial de Partidas</h4>
+                <div id="match-list-container">${matchCardsHTML}</div>
+                <button id="btnLoadMore" onclick="buscarInvocador(true)" class="lck-btn-more">MOSTRAR MÁS PARTIDAS</button>
+            </div>`;
+    } else {
+        document.getElementById("match-list-container").insertAdjacentHTML('beforeend', matchCardsHTML);
+        document.getElementById("btnLoadMore").disabled = false;
+        document.getElementById("btnLoadMore").innerHTML = "MOSTRAR MÁS PARTIDAS";
+    }
 }
 
-// Permitir buscar con Enter
-document.getElementById("summonerName").addEventListener("keypress", function (e) {
-    if (e.key === "Enter") {
-        buscarInvocador();
+function diosRango(texto) {
+    if (!texto || texto === "UNRANKED") return "Unranked";
+    return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
+}
+
+// --- 3. EVENTOS Y MODAL ---
+window.onload = function() {
+    const modal = document.getElementById("authModal");
+    const openBtn = document.getElementById("openFeedback");
+    const closeBtn = document.querySelector(".close-modal-btn");
+    const pixelCat = document.getElementById("pixelCat");
+    const catMenu = document.getElementById("catMenu");
+    const openFromCat = document.getElementById("openFeedbackFromCat");
+
+    // Lógica para Abrir Modal
+    if (openBtn) openBtn.onclick = () => modal.style.display = "block";
+    if (openFromCat) openFromCat.onclick = (e) => {
+        e.preventDefault();
+        modal.style.display = "block";
+    };
+
+    // Lógica para Cerrar Modal
+    if (closeBtn) closeBtn.onclick = () => modal.style.display = "none";
+
+    window.onclick = (event) => {
+        if (event.target == modal) modal.style.display = "none";
+    };
+
+    // Lógica del Gatito
+    if (pixelCat) {
+        pixelCat.onclick = (e) => {
+            e.stopPropagation();
+            catMenu.style.display = (catMenu.style.display === "block") ? "none" : "block";
+        };
     }
-});
+    document.addEventListener("click", () => { if (catMenu) catMenu.style.display = "none"; });
+
+    // --- LÓGICA DE ENVÍO DE FORMULARIO CON ANIMACIÓN ---
+        const feedbackForm = document.getElementById("feedbackForm");
+        if (feedbackForm) {
+            feedbackForm.onsubmit = async function(e) {
+                e.preventDefault();
+
+                // 1. CAPTURAR EL NOMBRE ANTES DE LIMPIAR TODO
+                const nombreUsuario = document.getElementById("fbName").value || "Invocador";
+
+                const btn = this.querySelector(".btn-submit-hextech span");
+                const originalText = btn.innerText;
+                btn.innerText = "TRANSMITIENDO...";
+
+                const data = new FormData(this);
+                try {
+                    const res = await fetch(this.action, {
+                        method: 'POST',
+                        body: data,
+                        headers: { 'Accept': 'application/json' }
+                    });
+
+                    if (res.ok) {
+                        // 2. CERRAR MODAL Y LIMPIAR
+                        modal.style.display = "none";
+                        this.reset();
+
+                        // 3. DISPARAR LA ANIMACIÓN CON EL NOMBRE
+                        mostrarAgradecimiento(nombreUsuario);
+                    } else {
+                        alert("¡Error! Revisa tu conexión con la base Hextech.");
+                    }
+                } catch (error) {
+                    alert("Error de red.");
+                } finally {
+                    btn.innerText = originalText;
+                }
+            };
+        }
+
+    // ASEGÚRATE DE QUE ESTA FUNCIÓN ESTÉ FUERA DE WINDOW.ONLOAD
+    function mostrarAgradecimiento(nombre) {
+        // Creamos la notificación dinámicamente
+        const toast = document.createElement("div");
+        toast.className = "success-toast";
+        toast.innerHTML = `
+            <i class="fa-solid fa-circle-check"></i>
+            <h3>¡REPORTE RECIBIDO!</h3>
+            <p>Gracias por ayudar a mejorar Hextech Scout, <b>${nombre}</b>.</p>
+        `;
+        document.body.appendChild(toast);
+
+        // Animación de entrada (escala y opacidad)
+        setTimeout(() => toast.classList.add("show"), 100);
+
+        // Desaparece solo después de 3.5 segundos
+        setTimeout(() => {
+            toast.classList.remove("show");
+            setTimeout(() => toast.remove(), 500);
+        }, 3500);
+    }
+
+    const searchInput = document.getElementById("summonerName");
+    if (searchInput) searchInput.onkeypress = (e) => { if (e.key === "Enter") buscarInvocador(); };
+};
+
+function mostrarAgradecimiento() {
+    // --- LÓGICA DE ENVÍO DE FORMULARIO ---
+        const feedbackForm = document.getElementById("feedbackForm");
+        if (feedbackForm) {
+            feedbackForm.onsubmit = async function(e) {
+                e.preventDefault();
+
+                // CAPTURAMOS EL NOMBRE ANTES DE LIMPIAR EL FORMULARIO
+                const nombreUsuario = document.getElementById("fbName").value || "Invocador";
+
+                const btn = this.querySelector(".btn-submit-hextech span");
+                const originalText = btn.innerText;
+                btn.innerText = "TRANSMITIENDO...";
+
+                const data = new FormData(this);
+                try {
+                    const res = await fetch(this.action, {
+                        method: 'POST',
+                        body: data,
+                        headers: { 'Accept': 'application/json' }
+                    });
+
+                    if (res.ok) {
+                        modal.style.display = "none";
+                        this.reset();
+
+                        // PASAMOS EL NOMBRE A LA FUNCIÓN DE AGRADECIMIENTO
+                        mostrarAgradecimiento(nombreUsuario);
+                    } else {
+                        alert("Asegúrate de configurar tu ID de Formspree.");
+                    }
+                } catch (error) {
+                    alert("Error de conexión.");
+                } finally {
+                    btn.innerText = originalText;
+                }
+            };
+        }
+
+    // MODIFICA LA FUNCIÓN PARA QUE RECIBA EL NOMBRE
+    function mostrarAgradecimiento(nombre) {
+        const toast = document.createElement("div");
+        toast.className = "success-toast";
+        // USAMOS EL NOMBRE DINÁMICO AQUÍ
+        toast.innerHTML = `
+            <i class="fa-solid fa-circle-check"></i>
+            <h3>¡REPORTE RECIBIDO!</h3>
+            <p>Gracias por ayudar a mejorar Hextech Scout, <b>${nombre}</b>.</p>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add("show"), 100);
+        setTimeout(() => {
+            toast.classList.remove("show");
+            setTimeout(() => toast.remove(), 500);
+        }, 3500);
+    }
+}
